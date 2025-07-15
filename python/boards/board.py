@@ -7,23 +7,36 @@ Email: christoph.kirst.ck@gmail.com
 Copyright 2025 Christoph Kirst
 """
 
-from abc import ABC, abstract
+from abc import ABC, abstractmethod
+
 
 class Board(ABC):
-
-    @ab
-    def n_channels(self):
-        return 0
+    @property
+    @abstractmethod
+    def n_channels(self) -> int:
+        ...
 
     @property
-    def sample_rate(self):
-        raise NotImplemented
+    @abstractmethod
+    def channels(self) -> list[int]:
+        ...
 
+    @property
+    @abstractmethod
+    def sampling_rate(self) -> int:
+        ...
+
+    @abstractmethod
     def start(self):
-        raise NotImplemented
+        ...
 
+    @abstractmethod
     def stop(self):
-        raise NotImplemented
+        ...
 
-    def get_data(self, num_points):
-        raise NotImplemented
+    @abstractmethod
+    def get_data(self, n_points: int | None):
+        ...
+
+    def __repr__(self):
+        return f"{self.__class__.__name__}(n_channels={self.n_channels}, sample_rate={self.sampling_rate})"

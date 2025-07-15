@@ -5,44 +5,65 @@ EEG Art Project
 Author: Christoph Kirst
 Email: christoph.kirst.ck@gmail.com
 Copyright 2025 Christoph Kirst
-"""
 
+Example
+>>> from boards.virtual_board import RandomBoard
+>>> board = RandomBoard()
+>>> board
+RandomBoard(n_channels=16, sample_rate=1000)
+
+>>> board.start()
+>>> data = board.get_data()
+>>> data.shape
+(16, 100)
+"""
 import numpy as np
 
+from .board import Board
 
-class VirtualBoard(Board):
-    def __init__(self, board_id, sampling_rate=1000, *args, **kwargs):
+
+class RandomBoard(Board):
+    def __init__(
+            self,
+            board_id: int = 0,
+            n_channels: int = 16,
+            sampling_rate: int = 1000,
+            n_points: int = 100,
+            seed: int | None = None,
+            scale: float | None = None,
+            *args, **kwargs):  # noqa
         self._board_id = board_id
         self._sampling_rate = sampling_rate
-        self._n_channels = 16
+        self._n_channels = n_channels
+        self._n_points = n_points
+        self._scale = scale if scale is not None else 1.0
+
+        if seed is None:
+            seed = np.random.randint(0, 64000)
+        self._seed = seed
+        self._random = None
 
     @property
-    def
+    def n_channels(self) -> int:
+        return self._n_channels
 
-    def prepare_session(self, *args, **kwargs):
-        return
+    @property
+    def channels(self) -> list[int]:
+        return list(range(self.n_channels))
 
-    def start_stream(self, *args, **kwargs):
-        return
+    @property
+    def sampling_rate(self) -> int:
+        return self._sampling_rate
 
-    @classmethod
-    def enable_dev_board_logger(cls):
-        return
+    @property
+    def board_id(self) -> int:
+        return self._board_id
 
-    def is_prepared(self):
-        return True
+    def start(self):
+        self._random = np.random.RandomState(self._seed)
 
-    def release_session(self):
-        return
+    def stop(self):
+        pass
 
-    def get_board_id(self):
-        return self.board_id
-
-    def get_exg_channels(self, board_id):
-        return [i for i in range(self.n_channels)]
-
-    def get_sampling_rate(self, board_id):
-        return self.sampling_rate
-
-    def get_current_board_data(self, num_points):
-        return np.random.rand(*(self.n_channels, num_points))
+    def get_data(self, n_points: int | None = None):
+        return self._scale * self._random.rand(*(self.n_channels, n_points if n_points is not None else self._n_points))
