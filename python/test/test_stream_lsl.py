@@ -1,11 +1,11 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Thu Aug 26 06:58:58 2021
+EEG Art Project
 
-@author: ckirst
+Author: Christoph Kirst
+Email: christoph.kirst.ck@gmail.com
+Copyright 2025 Christoph Kirst
 """
-
 
 """Example program to show how to read a multi-channel time series from LSL."""
 import time
@@ -21,6 +21,7 @@ inlet = StreamInlet(streams[0])
 duration = 10
 
 sleep(1)
+
 
 def testLSLSamplingRate():
     start = time.time()
@@ -50,7 +51,7 @@ testLSLSamplingRate()
 
 
 #%%
-%gui qt5 
+# %gui qt5
 
 
 import time
@@ -62,7 +63,7 @@ import pyqtgraph as pg
 import matplotlib as mpl
 
 pg.setConfigOption('background', 'w')
-colors = np.array(255* mpl.cm.coolwarm(np.linspace(0,1,8)), dtype=int);
+colors = np.array(255* mpl.cm.coolwarm(np.linspace(0,1,8)), dtype=int)
 
 x = np.random.normal(size=10)
 y = np.random.normal(size=10)
@@ -71,9 +72,8 @@ for i in range(1,8):
   x = np.random.normal(size=10)
   y = np.random.normal(size=10)
   p.plot(x,y, pen=pg.mkPen(color=colors[i,:3],style=None, symbol='o'))
-curves = p.plotItem.curves;
+curves = p.plotItem.curves
 
-p.plotItem
 
 # first resolve an EEG stream on the lab network
 print("looking for an EEG stream...")
@@ -88,20 +88,20 @@ sleep(1)
 
 def stream_plot(duration = 10, max_points = 10000, offset = 100):
     start = time.time()
-    plot_data = np.zeros((0,8));
-    time_data = np.zeros((0,));
+    plot_data = np.zeros((0,8))
+    time_data = np.zeros((0,))
     while time.time() <= start + duration:
         # get chunks of samples
-        samples, timestamp = inlet.pull_chunk();
+        samples, timestamp = inlet.pull_chunk()
         if samples:
           print('new data: length=%d' % len(timestamp))
-          data = np.vstack(samples);
+          data = np.vstack(samples)
           plot_data = np.concatenate([plot_data, data], axis=0)
           #time_data = np.hstack([time_data, timestamp])
           
           if plot_data.shape[0] > max_points:
             #time_data = time_data[-max_points:];
-            plot_data = plot_data[-max_points:];
+            plot_data = plot_data[-max_points:]
           p.enableAutoRange('xy', False)
           for i in range(8):
             curves[i].setData(np.arange(plot_data[:,i].shape[0]),plot_data[:,i] + i * offset)

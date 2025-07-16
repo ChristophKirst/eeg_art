@@ -8,6 +8,7 @@ Copyright 2025 Christoph Kirst
 """
 
 from abc import ABC, abstractmethod
+from typing import Self
 
 
 class Board(ABC):
@@ -27,15 +28,22 @@ class Board(ABC):
         ...
 
     @abstractmethod
-    def start(self):
+    def start(self, *args, **kwargs) -> Self:
         ...
 
     @abstractmethod
     def stop(self):
         ...
 
+    def __del__(self):
+        self.stop()
+
     @abstractmethod
-    def get_data(self, n_points: int | None):
+    def get_data(self, n_samples: int | None):
+        ...
+
+    @abstractmethod
+    def get_current_data(self, n_samples: int | None):
         ...
 
     def __repr__(self):

@@ -8,14 +8,15 @@ Copyright 2025 Christoph Kirst
 """
 import logging
 
+from typing import Self
+
 from .board import Board
-from .utils.utils import get_free_port
+from network.utils import get_free_port
 
 import brainflow
 from brainflow.board_shim import BoardShim, BrainFlowInputParams, BrainFlowError
 from brainflow.exit_codes import BrainFlowExitCodes, BrainFlowError
-from brainflow.board_shim import BrainFlowInputParams #, BoardIds, BrainFlowError
-# from brainflow.data_filter import DataFilter, FilterTypes, AggOperations, WindowFunctions, DetrendOperations
+from brainflow.board_shim import BrainFlowInputParams
 
 
 class OpenBCIBoard(Board):
@@ -49,7 +50,10 @@ class OpenBCIBoard(Board):
         self.enable_dev_board_logger()
         logging.basicConfig(level=logging.DEBUG)
 
-    def start(self, session_length: float = 60):
+    def is_prepared(self) -> bool:
+        return self.board_shim.is_prepared()
+
+    def start(self, session_length: float = 60) -> Self:
         logging.info('Starting session')
         self.board_shim.prepare_session()
 
@@ -58,9 +62,10 @@ class OpenBCIBoard(Board):
         self.board_shim.start_stream(n_points, streamer_params)
 
         logging.info('Session started')
+        return self
 
     def stop(self):
-        logging.info('Releasing session')
+        logging.info('Session stopped')
         self.board_shim.release_session()
 
     @property
@@ -79,12 +84,24 @@ class OpenBCIBoard(Board):
     def sampling_rate(self) -> int:
         return self.board_shim.get_sampling_rate(self.board_id)
 
-    def get_data(self, n_points: int | None):
+    def get_data_count(self) -> int:
+        return self.board_shim.get_board_data_count()
+
+    def get_data(self, n_samples: int | None):
         try:
-            data = self.board_shim.get_current_board_data(n_points)
-            if data is None:
-                raise BrainFlowError('no data', -1)
+            data = self.board_shim.get_board_data(n_samples)
         except BrainFlowError as e:
             data = np.zeros((0, self.n_channels))
             logging.warning(f'Exception: {e}', exc_info=True)
         return data
+
+    def get_current_data(self, n_samples: int | None):
+        try:
+            data = self.board_shim.get_current_board_data(n_samples)
+        except BrainFlowError as e:
+            data = np.zeros((0, self.n_channels))
+            logging.warning(f'Exception: {e}', exc_info=True)
+        return data
+
+    def __repr__(self):
+        return f"{Board.__repr__(self)[:-1]}, id={self.board_id}, is_prepared={self.is_prepared()})"

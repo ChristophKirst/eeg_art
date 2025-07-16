@@ -1,4 +1,13 @@
-#%%
+# -*- coding: utf-8 -*-
+"""
+EEG Art Project
+
+Author: Christoph Kirst
+Email: christoph.kirst.ck@gmail.com
+Copyright 2025 Christoph Kirst
+"""
+
+# example program to write data to port to communicate with max
 
 import time
 import numpy as np
@@ -13,10 +22,3 @@ for i in range(1000000):
     p = np.random.random()
     client.send_message('/pitch', p)
     time.sleep(0.02)
-
-#%%
-
-
-#%%
-
-
