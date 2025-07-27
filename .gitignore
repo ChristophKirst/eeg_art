@@ -1,0 +1,23 @@
+# Experimental
+**/**/_dev/
+
+# PyCharm
+.idea/
+*.iml
+
+# Python caches
+__pycache__/
+*.pyc
+*.pyd
+.Python
+venv/
+env/
+
+# macOS
+.DS_Store
+._*
+
+# other
+/data/videos/shanghai_ai.mp4
+/data/videos/zoomed_ai.mp4
+

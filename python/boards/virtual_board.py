@@ -50,64 +50,12 @@ from typing import Self
 
 from .board import Board
 
+from streaming.streaming import StreamingCounter
+
 DEFAULT_RECORDING = './data/example/recording.npy'
 
 
-class RingbufferBoard(Board, ABC):
-    def __init__(
-            self,
-            sampling_rate: int = None,
-            buffer_size: int | None = None,
-    ):
-        super().__init__()
-        self._sampling_rate = sampling_rate
-        self._start_time = None
-        self._last_access = None
-        self._buffer_size = buffer_size
-
-    @property
-    def sampling_rate(self) -> int:
-        return self._sampling_rate
-
-    def start(self) -> Self:
-        self._start_time = time.perf_counter()
-        self._last_access = self._start_time
-        return self
-
-    def set_last_access(self, access_time: float | None = None):
-        self._last_access = access_time if access_time is not None else time.perf_counter()
-
-    def get_start_time(self):
-        return self._start_time
-
-    def get_current_time(self, current_time: float | None = None) -> float:  # noqa
-        return time.perf_counter() if current_time is None else current_time
-
-    def get_elapsed_time(self, current_time: float | None = None) -> float:
-        return self.get_current_time(current_time) - self.get_start_time()
-
-    def get_last_access_time(self) -> float:
-        return self._last_access
-
-    def get_elapsed_time_since_access(self, current_time: float | None = None) -> float:
-        return self.get_current_time(current_time) - self.get_last_access_time()
-
-    def get_n_samples_since_start(self, current_time: float | None = None) -> int:
-        return int(self.sampling_rate * self.get_elapsed_time(current_time))
-
-    def get_n_samples_since_access(self, current_time: float | None = None) -> int:
-        return int(self.sampling_rate * self.get_elapsed_time_since_access(current_time))
-
-    def get_buffer_data_count(self, current_time: float | None = None) -> int:
-        count = self.get_n_samples_since_access(current_time)
-        if self._buffer_size is not None:
-            if count > self._buffer_size:
-                logging.warn('{self} ringbuffer overflow')
-                count = self._buffer_size
-        return count
-
-
-class RandomBoard(RingbufferBoard):
+class RandomBoard(StreamingCounter):
     def __init__(
             self,
             board_id: int = 0,
@@ -119,7 +67,7 @@ class RandomBoard(RingbufferBoard):
             buffer_size: int | None = None,
             *args, **kwargs  # noqa
     ):
-        RingbufferBoard.__init__(self, sampling_rate=sampling_rate, buffer_size=buffer_size)
+        StreamingCounter.__init__(self, sampling_rate=sampling_rate, stream_buffer_size=buffer_size)
         self._board_id = board_id
         self._n_channels = n_channels
         self._scale = scale if scale is not None else 1.0
@@ -157,7 +105,7 @@ class RandomBoard(RingbufferBoard):
         self.set_last_access(access_time=current_time)
         return self._scale * self._random.rand(*(self.n_channels, n_samples)) + self._bias
 
-    def get_current_data(self, n_samples: int | None):
+    def get_current_data(self, n_samples: int):
         return self.get_data(n_samples)
 
 
@@ -260,3 +208,57 @@ class PlaybackBoard(RingbufferBoard):
         if self._recording_file is not None:
             r = f"{r[:-1]}, file={self._recording_file})"
         return r
+
+
+# class RingbufferBoard(Board, ABC):
+#     def __init__(
+#             self,
+#             sampling_rate: int = None,
+#             buffer_size: int | None = None,
+#     ):
+#         super().__init__()
+#         self._sampling_rate = sampling_rate
+#         self._start_time = None
+#         self._last_access = None
+#         self._buffer_size = buffer_size
+#
+#     @property
+#     def sampling_rate(self) -> int:
+#         return self._sampling_rate
+#
+#     def start(self) -> Self:
+#         self._start_time = time.perf_counter()
+#         self._last_access = self._start_time
+#         return self
+#
+#     def set_last_access(self, access_time: float | None = None):
+#         self._last_access = access_time if access_time is not None else time.perf_counter()
+#
+#     def get_start_time(self):
+#         return self._start_time
+#
+#     def get_current_time(self, current_time: float | None = None) -> float:  # noqa
+#         return time.perf_counter() if current_time is None else current_time
+#
+#     def get_elapsed_time(self, current_time: float | None = None) -> float:
+#         return self.get_current_time(current_time) - self.get_start_time()
+#
+#     def get_last_access_time(self) -> float:
+#         return self._last_access
+#
+#     def get_elapsed_time_since_access(self, current_time: float | None = None) -> float:
+#         return self.get_current_time(current_time) - self.get_last_access_time()
+#
+#     def get_n_samples_since_start(self, current_time: float | None = None) -> int:
+#         return int(self.sampling_rate * self.get_elapsed_time(current_time))
+#
+#     def get_n_samples_since_access(self, current_time: float | None = None) -> int:
+#         return int(self.sampling_rate * self.get_elapsed_time_since_access(current_time))
+#
+#     def get_buffer_data_count(self, current_time: float | None = None) -> int:
+#         count = self.get_n_samples_since_access(current_time)
+#         if self._buffer_size is not None:
+#             if count > self._buffer_size:
+#                 logging.warn('{self} ringbuffer overflow')
+#                 count = self._buffer_size
+#         return count

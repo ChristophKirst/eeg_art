@@ -11,7 +11,7 @@ import logging
 from typing import Self
 
 from .board import Board
-from network.utils import get_free_port
+from streaming.utils import get_free_port
 
 import brainflow
 from brainflow.board_shim import BoardShim, BrainFlowInputParams, BrainFlowError

@@ -10,3 +10,4 @@ Copyright 2025 Christoph Kirst
 from .board import Board
 from .openbci_board import OpenBCIBoard
 from .virtual_board import RandomBoard, PlaybackBoard
+from .board_buffer import BoardBuffer
