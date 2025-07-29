@@ -70,7 +70,7 @@ class Updater(Timer, ABC):
     def _update(self):
         if self.is_running():
             self.update()  # Call the user-defined update method
-            if self.session_length is None or (self.get_time_elapsed_since_start() < self.session_length):
+            if self.session_length is None or (self.get_elapsed_time() < self.session_length):
                 self._start_timer() # Reschedule the timer for the next interval
 
     def _

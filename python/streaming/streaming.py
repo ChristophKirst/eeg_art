@@ -1,6 +1,12 @@
-from abc import ABC, abstractmethod
+# -*- coding: utf-8 -*-
+"""
+EEG Art Project
 
-from streaming.buffer import Buffer, RingBuffer
+Author: Christoph Kirst
+Email: christoph.kirst.ck@gmail.com
+Copyright 2025 Christoph Kirst
+"""
+from abc import ABC, abstractmethod
 
 
 class Stream(ABC):

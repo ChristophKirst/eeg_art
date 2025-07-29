@@ -15,7 +15,7 @@ transform = transforms.Compose([
     # transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
 ])  #
 
-device = 'cuda'
+device = 'cpu'
 
 image_path = "./data/images/chinese_garden.jpg"  # Replace with the actual path to your image
 image = Image.open(image_path).convert('RGB')

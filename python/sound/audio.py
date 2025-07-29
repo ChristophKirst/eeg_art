@@ -1,13 +1,19 @@
+# -*- coding: utf-8 -*-
 """
->>> from sound.audio import list_audio_devices
->>> list_audio_devices()
+EEG Art Project
 
+Author: Christoph Kirst
+Email: christoph.kirst.ck@gmail.com
+Copyright 2025 Christoph Kirst
 
+Example
+>>> from sound.audio import get_audio_devices
+>>> get_audio_devices()
 """
 import pyaudio
 
 
-def list_audio_devices():
+def get_audio_devices():
     mics = []
     indices = []
     infos = []
@@ -23,12 +29,3 @@ def list_audio_devices():
             pass
 
     return mics, indices, infos, p
-
-
-def default_audio_device():
-    pass
-
-
-
-
-

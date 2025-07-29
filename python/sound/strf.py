@@ -19,8 +19,7 @@ Examples
 """
 import numpy as np
 
-import utils.initialize_pycharm_gui
-import matplotlib.pyplot as plt
+from visualization.plotting import plt
 
 
 def onset_strf(
