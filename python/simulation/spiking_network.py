@@ -8,13 +8,19 @@ Copyright 2025 Christoph Kirst
 
 Examples
 >>> import simulation.spiking_network as net
->>> topology = net.NetworkTopology(topology_type='spatial')
+>>> topology = net.NetworkTopology(topology_type='spatial', weights=30)
+>>> snn = net.SpikingNetwork(topology=topology, par_i=7.5, par_d=(3, 3))
+
+>>> viewer = snn.simulate(5000, verbose=True)
+>>> snn.simulate(500, verbose=viewer)
+
+>>> import numpy as np
+>>> plotter = net.
+PAram(positions=topology.positions, points=True, lines=True, rotation_speed=0.1)
+>>> snn.simulate(5000, verbose=plotter)
+
 >>> topology.plot_adjacency()
-
 >>> pl = net.NetworkPlotter(positions=topology.positions, post=topology.post)
-
->>> snn = net.SpikingNetwork(topology=topology)
-
 """
 from typing import Callable, Literal, get_args
 
@@ -159,6 +165,7 @@ class SpikingNetwork:
             topology: NetworkTopology | None = None,
             par_a: float | tuple | np.ndarray | None = None,
             par_d: float | tuple | np.ndarray | None = None,
+            par_i: float | tuple | np.ndarray | None = None,
             threshold: float = 30,
             dt: float = 0.1,
     ):
@@ -168,6 +175,7 @@ class SpikingNetwork:
 
         self.par_a = self._initialize_parameter(par_a, default=(0.02, 0.1))
         self.par_d = self._initialize_parameter(par_d, default=(8, 2))
+        self.par_i = self._initialize_parameter(par_i, default=(0, 0))
 
         self.threshold = threshold
         self.dt = dt
@@ -189,7 +197,7 @@ class SpikingNetwork:
             par = default
         if isinstance(par, float):
             par = (par, par)
-        if isinstance(par_a, tuple) and len(par) == 2:
+        if isinstance(par, tuple) and len(par) == 2:
             par = np.append(
                 par[0] * np.ones(self.n_excitatory_neurons),
                 par[1] * np.ones(self.n_inhibitory_neurons)
@@ -208,34 +216,43 @@ class SpikingNetwork:
         v, u, post, weights = self.v, self.u, self.topology.post, self.topology.weights
 
         # parameter
-        par_a, par_d, threshold, dt = self.par_a, self.par_d, self.threshold, self.dt
+        par_a, par_d, par_i, threshold, dt = self.par_a, self.par_d, self.par_i, self.threshold, self.dt
 
-        current = np.zeros(n)
+        current = np.ones(n) * par_i
 
-        viewer = nNone
+        viewer = None
         if verbose is True:
-            viewer = NetworkPlotter(positions=self.topology.positions, values=np.zeros(self.n_total_neurons))
-        elif isinstance(viewer, NetworkPlotter | NetworkViewer):
+            # viewer = NetworkPlotter(
+            #     positions=self.topology.positions,
+            #     points=dict(values=np.zeros(self.n_total_neurons))
+            # )
+            viewer = NetworkViewer(
+                rasters=np.zeros((0, 2)),
+                time_window=(-dt * steps, 0),
+                neuron_window=(0, self.n_total_neurons)
+            )
+        elif isinstance(verbose, NetworkPlotter | NetworkViewer):
             viewer = verbose
 
         t = 0
-        for s in tqdm.tqdm(range(steps)):
+        for _ in tqdm.tqdm(range(steps)):
             spiking = v >= threshold  # neurons reaching firing threshold
             # spiking = np.where(spiking)[0]
+            # print('spikes: ', spiking.sum())
 
             v[spiking] = -65  # reset v for spiking neurons
             u[spiking] = u[spiking] + par_d[spiking]  # update u for spiking neurons
 
             # synaptic currents & stdp depression
-            current[:] = 0
+            current[:] = par_i
             current[np.random.randint(n)] = 20  # random thalamic input
 
             for i in np.where(spiking)[0]:
                 current[post[i]] += weights[i]
 
             # integrate variables
-            v = v + dt * 0.5 * ((0.04 * v + 5) * v + 140 - u + inputs)
-            v = v + dt * 0.5 * ((0.04 * v + 5) * v + 140 - u + inputs)
+            v = v + dt * 0.5 * ((0.04 * v + 5) * v + 140 - u + current)
+            v = v + dt * 0.5 * ((0.04 * v + 5) * v + 140 - u + current)
             u = u + dt * par_a * (0.2 * v - u)
 
             t += dt
@@ -246,5 +263,11 @@ class SpikingNetwork:
                 else:
                     spiking = np.where(spiking)[0]
                     rasters = np.full((len(spiking), 2), fill_value=t)
-                    rasters[:, 0] = spiking
+                    rasters[:, 1] = spiking
                     viewer.update(rasters=rasters, variables=v, shift=dt)
+
+        return viewer
+
+    def __repr__(self):
+        topology = self.topology.__repr__()[len(self.topology.__class__.__name__):]
+        return f"{self.__class__.__name__}({topology=})"

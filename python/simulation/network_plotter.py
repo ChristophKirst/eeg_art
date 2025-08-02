@@ -12,11 +12,19 @@ Example
 >>> n = 1000
 >>> positions = np.random.rand(n, 3)
 >>> values = np.random.rand(n)
->>> post = np.random.randint(0, n, (n, 10))
->>> pl = NetworkPlotter(positions=positions, post=post, rotation_speed=0.01)
-
+>>> post = np.random.randint(0, n, (n, 3))
+>>> import matplotlib.pylab as plt
+>>> import matplotlib.colors as mcolots
+>>> colors = ['yellow', 'orange', 'white', 'lightblue']
+>>> cmap = mcolots.LinearSegmentedColormap.from_list('electricity', colors)
+>>> pl = NetworkPlotter(positions=positions, post=post, rotation_speed=0.03, points=dict(cmap=cmap, value_range=(0, 1.4)), lines=dict(cmap=cmap, value_range=(0, 1.4)))
 >>> _ = [pl.update(np.random.rand(n) < 0.002) for _ in range(1000)]
+
+
 """
+
+
+
 from abc import ABC, abstractmethod
 import numpy as np
 import functools as ft
@@ -29,6 +37,8 @@ from pyqtgraph.Qt.QtGui import QFont
 from pyqtgraph.Qt.QtWidgets import QWidget
 
 from visualization.plotting import pv, pvq
+
+
 
 
 class PlotData(ABC):
@@ -145,6 +155,7 @@ class NetworkPlotter(QWidget):
         if lines is True and positions is not None and post is not None:
             lines = dict(positions=positions, post=post)
         if isinstance(lines, dict):
+            lines.update(dict(positions=positions, post=post))
             lines = LineData(self.plotter, **lines)
         else:
             lines = None
@@ -153,6 +164,7 @@ class NetworkPlotter(QWidget):
         if points is True and positions is not None:
             points = dict(positions=positions)
         if isinstance(points, dict):
+            points.update(dict(positions=positions))
             points = PointData(self.plotter, **points)
         else:
             points = None
@@ -187,3 +199,5 @@ class NetworkPlotter(QWidget):
             self.lines.update(spiking)
         self.update_camera()
         self.plotter.render()
+
+        QtWidgets.QApplication.processEvents()

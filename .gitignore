@@ -1,3 +1,8 @@
+#
+*.mov
+*.mp4
+
+
 # Experimental
 **/**/_dev/
 

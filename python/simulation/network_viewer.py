@@ -10,8 +10,8 @@ Example
 >>> import numpy as np
 >>> import simulation.network_viewer as nv
 >>> raster = np.zeros((100, 2))
->>> raster[:, 1] = np.random.randint(0, 30, size=100)
 >>> raster[:, 0] = np.random.randint(0, 1000, size=100)
+>>> raster[:, 1] = np.random.randint(0, 30, size=100)
 >>> variables = np.vstack([np.cos(np.arange(1000) * 0.1), np.sin(np.arange(1000) * 0.1)]).T
 >>> densities = np.random.rand(1000, 100)
 >>> v = nv.NetworkViewer(rasters=raster, variables=variables, densities=densities, time_window=(0, 1000))
